@@ -1,0 +1,208 @@
+@import "tailwindcss";
+
+:root {
+  --yt-red: #ff0000;
+  --yt-red-dark: #cc0000;
+  --yt-bg: #ffffff;
+  --yt-surface: #f9f9f9;
+  --yt-text: #0f0f0f;
+  --yt-text-secondary: #606060;
+  --yt-border: #e5e5e5;
+  --yt-hover: #f2f2f2;
+  --yt-chip-bg: #f2f2f2;
+  --yt-chip-active: #0f0f0f;
+  --yt-success: #065fd4;
+  --yt-green: #0d904f;
+}
+
+@theme inline {
+  --color-yt-red: var(--yt-red);
+  --color-yt-red-dark: var(--yt-red-dark);
+  --color-yt-bg: var(--yt-bg);
+  --color-yt-surface: var(--yt-surface);
+  --color-yt-text: var(--yt-text);
+  --color-yt-text-secondary: var(--yt-text-secondary);
+  --color-yt-border: var(--yt-border);
+  --color-yt-hover: var(--yt-hover);
+  --color-yt-chip-bg: var(--yt-chip-bg);
+  --color-yt-chip-active: var(--yt-chip-active);
+  --color-yt-success: var(--yt-success);
+  --color-yt-green: var(--yt-green);
+  --color-primary: var(--yt-red);
+  --color-primary-dark: var(--yt-red-dark);
+  --color-accent: #065fd4;
+  --color-muted: var(--yt-text-secondary);
+  --color-success: var(--yt-green);
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
+  --color-card-border: var(--yt-border);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--yt-bg);
+  color: var(--yt-text);
+  font-family: "Roboto", "Arial", sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #909090;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #606060;
+}
+
+.yt-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--yt-chip-bg);
+  color: var(--yt-text);
+  transition: background 0.2s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.yt-chip:hover {
+  background: #e5e5e5;
+}
+.yt-chip.active {
+  background: var(--yt-chip-active);
+  color: white;
+}
+
+.yt-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+@media (max-width: 640px) {
+  .yt-card {
+    border-radius: 8px;
+  }
+}
+
+.yt-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  background: var(--yt-surface);
+  border-radius: 12px;
+}
+@media (min-width: 768px) {
+  .yt-stat {
+    padding: 16px;
+  }
+}
+.yt-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--yt-text);
+  line-height: 1.2;
+}
+@media (min-width: 768px) {
+  .yt-stat-value {
+    font-size: 28px;
+  }
+}
+.yt-stat-label {
+  font-size: 12px;
+  color: var(--yt-text-secondary);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.yt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.yt-btn-primary {
+  background: var(--yt-red);
+  color: white;
+}
+.yt-btn-primary:hover {
+  background: var(--yt-red-dark);
+}
+.yt-btn-outline {
+  background: transparent;
+  color: var(--yt-text);
+  border: 1px solid var(--yt-border);
+}
+.yt-btn-outline:hover {
+  background: var(--yt-hover);
+}
+
+.yt-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 12px;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--yt-text);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+@media (min-width: 768px) {
+  .yt-sidebar-item {
+    gap: 24px;
+    height: 40px;
+  }
+}
+.yt-sidebar-item:hover {
+  background: var(--yt-hover);
+}
+.yt-sidebar-item.active {
+  background: var(--yt-chip-bg);
+  font-weight: 600;
+}
+
+.yt-input {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--yt-border);
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  min-height: 44px;
+}
+.yt-input:focus {
+  border-color: #1c62b9;
+}
+.yt-input::placeholder {
+  color: #909090;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.yt-skeleton {
+  background: linear-gradient(90deg, var(--yt-surface) 25%, #e8e8e8 50%, var(--yt-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
