@@ -1,20 +1,16 @@
-import { NextResponse, NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { getChannelInfo, getRevenueData, getRecentVideos, getChannelAnalytics } from "@/lib/youtube";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Get the JWT token from the request
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    const session = await auth();
 
-    if (!token?.accessToken) {
+    if (!(session as any)?.token?.accessToken) {
       return NextResponse.json({ error: "Not authenticated", needsReconnect: true }, { status: 401 });
     }
 
-    const accessToken = token.accessToken as string;
+    const accessToken = (session as any).token.accessToken as string;
 
     const channels = await getChannelInfo(accessToken);
     if (!channels.length) {

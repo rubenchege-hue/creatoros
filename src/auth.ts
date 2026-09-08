@@ -39,8 +39,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      // Keep access token in token (server-side), don't expose to client
-      (session as any).error = token.error as string | undefined;
+      // Forward token data to session for API access
+      (session as any).token = {
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+        expiresAt: token.expiresAt,
+        error: token.error,
+      };
       return session;
     },
   },
