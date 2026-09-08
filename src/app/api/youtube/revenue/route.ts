@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { getRevenueData } from "@/lib/youtube";
 
-export async function GET(request: Request) {
-  const session = await auth();
+export async function GET(request: NextRequest) {
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
 
-  if (!session?.accessToken) {
+  if (!token?.accessToken) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
+
+  const accessToken = token.accessToken as string;
 
   const { searchParams } = new URL(request.url);
   const channelId = searchParams.get("channelId");
@@ -23,7 +29,7 @@ export async function GET(request: Request) {
     .split("T")[0];
 
   try {
-    const revenue = await getRevenueData(session.accessToken, channelId, startDate, endDate);
+    const revenue = await getRevenueData(accessToken, channelId, startDate, endDate);
     return NextResponse.json({ revenue });
   } catch (error) {
     console.error("Revenue fetch error:", error);

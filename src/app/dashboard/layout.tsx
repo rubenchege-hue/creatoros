@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   BarChart3,
@@ -19,7 +19,7 @@ import {
   Receipt,
   BarChart2,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -39,8 +39,49 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const searchPages = [
+    { href: "/dashboard", label: "Dashboard", keywords: "home overview summary" },
+    { href: "/dashboard/revenue", label: "Revenue", keywords: "money income adsense earnings" },
+    { href: "/dashboard/cashflow", label: "Cash Flow", keywords: "payments schedule calendar" },
+    { href: "/dashboard/pnl", label: "Video P&L", keywords: "profit loss costs expenses videos" },
+    { href: "/dashboard/expenses", label: "Expenses", keywords: "tax deductions categories" },
+    { href: "/dashboard/sponsorships", label: "Sponsorships", keywords: "deals brands pipeline leads" },
+    { href: "/dashboard/ai-studio", label: "AI Studio", keywords: "titles descriptions ideas generate" },
+    { href: "/dashboard/analytics", label: "Analytics", keywords: "views watch time ctr rpm" },
+    { href: "/dashboard/goals", label: "Goals", keywords: "targets milestones progress" },
+    { href: "/dashboard/settings", label: "Settings", keywords: "profile account preferences" },
+  ];
+
+  const filteredPages = searchQuery
+    ? searchPages.filter(
+        (p) =>
+          p.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.keywords.includes(searchQuery.toLowerCase())
+      )
+    : [];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSearchSelect = (href: string) => {
+    router.push(href);
+    setSearchQuery("");
+    setSearchOpen(false);
+  };
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
@@ -132,14 +173,39 @@ export default function DashboardLayout({
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex-1 max-w-xl hidden sm:block">
+          <div className="flex-1 max-w-xl hidden sm:block" ref={searchRef}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-yt-text-secondary" />
               <input
                 type="text"
-                placeholder="Search"
+                placeholder="Search pages..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setSearchOpen(true);
+                }}
+                onFocus={() => setSearchOpen(true)}
                 className="yt-input pl-10 h-10 rounded-full bg-yt-surface border-transparent focus:border-yt-border"
               />
+              {searchOpen && searchQuery && filteredPages.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-yt-border rounded-xl shadow-lg z-50 overflow-hidden">
+                  {filteredPages.map((page) => (
+                    <button
+                      key={page.href}
+                      onClick={() => handleSearchSelect(page.href)}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-yt-hover transition-colors flex items-center gap-3 ${
+                        pathname === page.href ? "bg-yt-surface font-medium" : ""
+                      }`}
+                    >
+                      <Search className="w-3.5 h-3.5 text-yt-text-secondary" />
+                      <span>{page.label}</span>
+                      {pathname === page.href && (
+                        <span className="ml-auto text-xs text-yt-green">current</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-1 md:gap-2 ml-auto">

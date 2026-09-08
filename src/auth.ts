@@ -40,7 +40,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       // Keep access token in token (server-side), don't expose to client
-      session.error = token.error as string | undefined;
+      (session as any).error = token.error as string | undefined;
       return session;
     },
   },

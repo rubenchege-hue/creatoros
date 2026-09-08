@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, DollarSign, ArrowRight, Clock, AlertCircle, Plus, Trash2, TrendingUp, Banknote } from "lucide-react";
+import { Calendar, DollarSign, ArrowRight, Clock, AlertCircle, Plus, Trash2, TrendingUp, Banknote, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";

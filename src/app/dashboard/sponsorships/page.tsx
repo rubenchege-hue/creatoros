@@ -1,7 +1,7 @@
 "use client";
 
-import { Plus, MoreHorizontal, DollarSign, Calendar, Building2, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Plus, MoreHorizontal, DollarSign, Calendar, Building2, Trash2, GripVertical } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 
 interface Deal {
   id: string;
@@ -11,6 +11,8 @@ interface Deal {
   deadline: string;
   notes: string;
 }
+
+const STORAGE_KEY = "creatoros_sponsorship_deals";
 
 const columns = [
   { id: "leads", label: "Leads", color: "bg-gray-400" },
@@ -30,17 +32,30 @@ const statusColors: Record<string, string> = {
   paid: "border-t-purple-500",
 };
 
+function loadDeals(): Record<string, Deal[]> {
+  if (typeof window === "undefined") return { leads: [], contacted: [], negotiating: [], won: [], invoiced: [], paid: [] };
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return { leads: [], contacted: [], negotiating: [], won: [], invoiced: [], paid: [] };
+}
+
+function saveDeals(deals: Record<string, Deal[]>) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(deals));
+  } catch {}
+}
+
 export default function SponsorshipsPage() {
-  const [deals, setDeals] = useState<Record<string, Deal[]>>({
-    leads: [],
-    contacted: [],
-    negotiating: [],
-    won: [],
-    invoiced: [],
-    paid: [],
-  });
+  const [deals, setDeals] = useState<Record<string, Deal[]>>(loadDeals);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newDeal, setNewDeal] = useState({ brand: "", value: "", contact: "", deadline: "", notes: "" });
+  const [draggedDeal, setDraggedDeal] = useState<{ deal: Deal; fromColumn: string } | null>(null);
+
+  useEffect(() => {
+    saveDeals(deals);
+  }, [deals]);
 
   const totalPipeline = Object.values(deals)
     .flat()
@@ -67,6 +82,56 @@ export default function SponsorshipsPage() {
       ...prev,
       [columnId]: prev[columnId].filter((d) => d.id !== dealId),
     }));
+  };
+
+  const handleMoveDeal = (dealId: string, fromColumn: string, toColumn: string) => {
+    if (fromColumn === toColumn) return;
+    setDeals((prev) => {
+      const deal = prev[fromColumn].find((d) => d.id === dealId);
+      if (!deal) return prev;
+      return {
+        ...prev,
+        [fromColumn]: prev[fromColumn].filter((d) => d.id !== dealId),
+        [toColumn]: [...prev[toColumn], deal],
+      };
+    });
+  };
+
+  const handleDragStart = (e: React.DragEvent, deal: Deal, columnId: string) => {
+    e.dataTransfer.setData("dealId", deal.id);
+    e.dataTransfer.setData("fromColumn", columnId);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggedDeal({ deal, fromColumn: columnId });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, toColumn: string) => {
+    e.preventDefault();
+    const dealId = e.dataTransfer.getData("dealId");
+    const fromColumn = e.dataTransfer.getData("fromColumn");
+    if (dealId && fromColumn) {
+      handleMoveDeal(dealId, fromColumn, toColumn);
+    }
+    setDraggedDeal(null);
+  };
+
+  const nextColumn: Record<string, string> = {
+    leads: "contacted",
+    contacted: "negotiating",
+    negotiating: "won",
+    won: "invoiced",
+    invoiced: "paid",
+  };
+
+  const handleAdvanceDeal = (columnId: string, deal: Deal) => {
+    const next = nextColumn[columnId];
+    if (next) {
+      handleMoveDeal(deal.id, columnId, next);
+    }
   };
 
   return (
@@ -122,7 +187,11 @@ export default function SponsorshipsPage() {
                   </div>
                 </div>
               </div>
-              <div className="p-3 space-y-3 min-h-[300px]">
+              <div
+                className="p-3 space-y-3 min-h-[300px]"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, col.id)}
+              >
                 {deals[col.id]?.length === 0 && (
                   <div className="text-center py-8 text-sm text-yt-text-secondary">
                     No deals
@@ -131,10 +200,13 @@ export default function SponsorshipsPage() {
                 {deals[col.id]?.map((deal) => (
                   <div
                     key={deal.id}
-                    className="bg-yt-surface p-3 rounded-xl border border-yt-border hover:shadow-sm transition-shadow cursor-pointer group"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, deal, col.id)}
+                    className={`bg-yt-surface p-3 rounded-xl border border-yt-border hover:shadow-sm transition-shadow cursor-grab active:cursor-grabbing group ${draggedDeal?.deal.id === deal.id ? "opacity-50" : ""}`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
+                        <GripVertical className="w-3 h-3 text-yt-text-secondary/40 shrink-0" />
                         <div className="w-8 h-8 rounded-lg bg-yt-red/10 flex items-center justify-center font-bold text-xs text-yt-red">
                           {deal.brand[0]}
                         </div>
@@ -161,6 +233,14 @@ export default function SponsorshipsPage() {
                         <Calendar className="w-3 h-3" />
                         {deal.deadline}
                       </div>
+                    )}
+                    {nextColumn[col.id] && (
+                      <button
+                        onClick={() => handleAdvanceDeal(col.id, deal)}
+                        className="mt-2 w-full py-1 text-xs font-medium text-yt-success hover:bg-yt-success/10 rounded transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        Move to {columns.find(c => c.id === nextColumn[col.id])?.label} →
+                      </button>
                     )}
                   </div>
                 ))}

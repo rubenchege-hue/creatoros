@@ -24,6 +24,7 @@ interface YouTubeData {
     title: string;
     viewCount: string;
     likeCount: string;
+    thumbnailUrl: string;
   }>;
   analytics: {
     views: number;
@@ -39,6 +40,7 @@ export default function DashboardPage() {
   const [youtubeData, setYoutubeData] = useState<YouTubeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [revenuePeriod, setRevenuePeriod] = useState("30D");
 
   useEffect(() => {
     // Try cached data first
@@ -85,6 +87,9 @@ export default function DashboardPage() {
   const subs = youtubeData?.channel?.subscriberCount
     ? parseInt(youtubeData.channel.subscriberCount)
     : 0;
+
+  const periodMonths: Record<string, number> = { "7D": 1, "30D": 2, "90D": 3, "1Y": 12 };
+  const filteredRevenue = youtubeData?.revenue?.slice(-periodMonths[revenuePeriod] || youtubeData.revenue.length) || [];
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -151,7 +156,8 @@ export default function DashboardPage() {
               {["7D", "30D", "90D", "1Y"].map((period) => (
                 <button
                   key={period}
-                  className={`yt-chip text-xs ${period === "30D" ? "active" : ""}`}
+                  onClick={() => setRevenuePeriod(period)}
+                  className={`yt-chip text-xs ${period === revenuePeriod ? "active" : ""}`}
                 >
                   {period}
                 </button>
@@ -159,11 +165,11 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {youtubeData?.revenue?.length ? (
+          {filteredRevenue.length > 0 ? (
             <div className="h-48 flex items-end gap-1">
               {(() => {
-                const maxRevenue = Math.max(...youtubeData.revenue.map((r) => r.estimatedRevenue));
-                return youtubeData.revenue.map((r, i) => {
+                const maxRevenue = Math.max(...filteredRevenue.map((r) => r.estimatedRevenue));
+                return filteredRevenue.map((r, i) => {
                   const height = maxRevenue > 0 ? (r.estimatedRevenue / maxRevenue) * 100 : 0;
                   return (
                     <div key={i} className="flex-1 flex flex-col justify-end">
@@ -229,17 +235,31 @@ export default function DashboardPage() {
             {youtubeData?.videos?.length ? (
               <div className="space-y-3">
                 {youtubeData.videos.slice(0, 3).map((video) => (
-                  <div key={video.videoId} className="flex items-center gap-3">
-                    <div className="w-20 h-12 md:w-24 md:h-14 bg-yt-surface rounded-lg flex items-center justify-center shrink-0">
-                      <Play className="w-4 h-4 text-yt-text-secondary" />
+                  <a
+                    key={video.videoId}
+                    href={`https://youtube.com/watch?v=${video.videoId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 group"
+                  >
+                    <div className="w-20 h-12 md:w-24 md:h-14 bg-yt-surface rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                      {video.thumbnailUrl ? (
+                        <img
+                          src={video.thumbnailUrl}
+                          alt={video.title}
+                          className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                        />
+                      ) : (
+                        <Play className="w-4 h-4 text-yt-text-secondary" />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{video.title}</div>
+                      <div className="text-sm font-medium truncate group-hover:text-yt-red transition-colors">{video.title}</div>
                       <div className="text-xs text-yt-text-secondary">
                         {parseInt(video.viewCount).toLocaleString()} views
                       </div>
                     </div>
-                  </div>
+                  </a>
                 ))}
               </div>
             ) : (
