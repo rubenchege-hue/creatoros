@@ -327,6 +327,29 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Trust Badges */}
+      <section className="py-8 px-4 bg-yt-surface">
+        <div className="max-w-5xl mx-auto text-center">
+          <a href="https://intasend.com/security" target="_blank" rel="noopener noreferrer">
+            <img
+              src="https://intasend-prod-static.s3.amazonaws.com/img/trust-badges/intasend-trust-badge-no-mpesa-hr-dark.png"
+              width={375}
+              alt="IntaSend Secure Payments (PCI-DSS Compliant)"
+              className="mx-auto"
+            />
+          </a>
+          <a
+            href="https://intasend.com/security"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-xs mt-2 hover:underline"
+            style={{ color: "#fafafa" }}
+          >
+            Secured by IntaSend Payments
+          </a>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-yt-border">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">

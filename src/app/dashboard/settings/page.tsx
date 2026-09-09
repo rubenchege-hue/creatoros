@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Bell, Shield, CreditCard, Video, LogOut, Save, Check } from "lucide-react";
+import { User, Bell, Shield, CreditCard, Video, LogOut, Save, Check, Loader2 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 
@@ -48,6 +48,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [saved, setSaved] = useState(false);
   const [channelTitle, setChannelTitle] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -72,6 +73,33 @@ export default function SettingsPage() {
     saveSettings(settings);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleCheckout = async (plan: string, amount: number) => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: settings.email,
+          firstName: settings.name.split(" ")[0],
+          lastName: settings.name.split(" ").slice(1).join(" ") || "",
+          amount,
+          plan,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Failed to start checkout");
+      }
+    } catch {
+      alert("Failed to connect to payment gateway");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleNotification = (key: keyof typeof settings.notifications) => {
@@ -220,8 +248,13 @@ export default function SettingsPage() {
               <div className="font-medium">Free Plan</div>
               <div className="text-sm text-yt-text-secondary">Revenue tracking, up to 3 channels, basic analytics</div>
             </div>
-            <button className="px-4 py-2 bg-yt-red text-white rounded-full text-sm font-medium hover:bg-yt-red-dark transition-colors">
-              Upgrade to Pro — $19/mo
+            <button
+              onClick={() => handleCheckout("creator", 19)}
+              disabled={loading}
+              className="px-4 py-2 bg-yt-red text-white rounded-full text-sm font-medium hover:bg-yt-red-dark transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {loading ? "Redirecting..." : "Upgrade to Pro — $19/mo"}
             </button>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-yt-text-secondary">
